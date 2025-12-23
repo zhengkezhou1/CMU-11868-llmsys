@@ -218,7 +218,6 @@ __global__ void mapKernel(
    * Returns:
    *  None (Fills in out array)
    */
-
     int out_index[MAX_DIMS];
     int in_index[MAX_DIMS];
     
@@ -231,9 +230,22 @@ __global__ void mapKernel(
     // 4. Calculate the position of element in in_array according to in_index and in_strides
     // 5. Calculate the position of element in out_array according to out_index and out_strides
     // 6. Apply the unary function to the input element and write the output to the out memory
-    
-    assert(false && "Not Implemented");
     /// END ASSIGN2_1
+
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    int stride = blockDim.x * gridDim.x;
+
+    for (int i = index; i < out_size; i+=stride) {
+      to_index(i, out_shape, out_index, shape_size);
+      // 广播机制,总是以 output 形状为基准
+      broadcast_index(out_index, out_shape, in_shape, in_index, shape_size, shape_size);
+      
+      // 当前线程要处理的元素(操作数据源数组)
+      int in_offset = index_to_position(in_index, in_strides, shape_size);
+      int out_offset = index_to_position(out_index, out_strides, shape_size);
+      
+      out[out_offset] = fn(fn_id, in_storage[in_offset]);
+    }
 }
 
 
