@@ -300,7 +300,6 @@ __global__ void zipKernel(
     int b_index[MAX_DIMS];
 
     /// BEGIN ASSIGN2_2
-    /// TODO
     // Hints:
     // 1. Compute the position in the output array that this thread will write to
     // 2. Convert the position to the out_index according to out_shape
@@ -310,8 +309,23 @@ __global__ void zipKernel(
     // 6. Broadcast the out_index to the b_index according to b_shape
     // 7.Calculate the position of element in b_array according to b_index and b_strides
     // 8. Apply the binary function to the input elements in a_array & b_array and write the output to the out memory
-    
-    assert(false && "Not Implemented");
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    int stride = blockDim.x * gridDim.x;
+    for (int i = index; i < out_size; i += stride) {
+      to_index(i, out_shape, out_index, out_shape_size);
+
+      broadcast_index(out_index, out_shape, a_shape, a_index, out_shape_size, a_shape_size);
+      // TODO: 添加非凡广播测试用例
+      // to_index(i, a_shape, a_index, a_shape_size);
+      
+      broadcast_index(out_index, out_shape, b_shape, b_index, out_shape_size, b_shape_size);
+      // to_index(i, b_shape, b_index, b_shape_size);
+
+      int a_pos = index_to_position(a_index, a_strides, a_shape_size);
+      int b_pos = index_to_position(b_index, b_strides, b_shape_size);
+      int out_pos = index_to_position(out_index, out_strides, out_shape_size);
+      out[out_pos] = fn(fn_id, a_storage[a_pos], b_storage[b_pos]);
+    }
     /// END ASSIGN2_2
 }
 
